@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors');
 const app = express()
 app.get('/name', (req, res) => {
     console.log("Just got a request!")
