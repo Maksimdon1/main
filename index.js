@@ -1,12 +1,4 @@
 
-
-
-
-
-
-
-
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
@@ -35,6 +27,12 @@ const filepath = './users.json'
 
 
 
+app.get('/name', (req, res) => {
+    console.log("Just got a request!")
+
+    console.log(req.headers['x-forwarded-for'] )
+    res.send('ip =   '+ req.headers['x-forwarded-for'])
+})
 
 
 app.get("/api/users", function (req, res) {
@@ -402,3 +400,4 @@ app.use((req, res, next) => res.status(404).send({
 
 
 app.listen(process.env.PORT || 3000)
+
