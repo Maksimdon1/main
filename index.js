@@ -5,7 +5,7 @@ const fs = require('fs');
 const morgan = require('morgan');
 const cors = require('cors');
 const CyclicDb = require("@cyclic.sh/dynamodb")
-const dbs = CyclicDb("kind-red-sea-urchin-fezCyclicDB")
+const db = CyclicDb("kind-red-sea-urchin-fezCyclicDB")
 
 
 var sqlite3 = require('sqlite3').verbose()
@@ -32,44 +32,7 @@ app.use(express.urlencoded({limit: '50mb', extended: true}))
 
 
 
-let db = new sqlite3.Database(DBSOURCE, (err) => {
-  if (err) {
-    // Cannot open database
-    console.error(err.message);
-    throw err;
-  } else {
-  
 
-    db.run(
-      `CREATE TABLE Users (
-            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Login text, 
-            Email text, 
-            Password text,             
-            Name text,
-            Surname text,
-            Token text,
-            SysLevel  INTEGER,
-
-            DateLoggedIn DATE,
-            DateCreated DATE
-            
-
-            )`,
-      (err) => {
-        if (err) {
-          // Table already created
-        } else {
-          // Table just created, creating some rows
-        //  var insert =   "INSERT INTO Users (Login, Email, Password, Salt, DateCreated) VALUES (?,?,?,?,?)";
-         
-        }
-      }
-    );
-  }
-});
-
-module.exports = db;
 
 
 
@@ -78,7 +41,16 @@ module.exports = db;
 
 const run = async function(){
   // instantiate a collection
-  let animals = dbs.collection('animals')
+  let users = db.collection('users')
+
+users.item('mike')
+        .fragment('work').set({
+            company: 'cyclic'
+        })
+
+let mikes_work =  users.item('mike').fragment('work').get()
+    console.log(mikes_work)
+  let animals = db.collection('animals')
   
   // create an item in collection with key "leo"
   let leo = await animals.set('leo', {
