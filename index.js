@@ -56,7 +56,7 @@ const run = async function(key){
 }
 app.get('/name/:key', (req, res) => {
   const user = run(req.params.key)
-  console.log(user)
+  console.log(user[0])
   res.send(user)
 })
 
