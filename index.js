@@ -55,8 +55,13 @@ const run =  function(key){
   
 }
 app.get('/name/:key', (req, res) => {
-  const user = run(req.params.key)
-  console.log(user)
+  let users = db.collection('users')
+
+
+
+
+  const user =  users.get(req.params.key)
+
   res.send(user)
 })
 
