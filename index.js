@@ -39,22 +39,21 @@ app.use(express.urlencoded({limit: '50mb', extended: true}))
 
 
 
-const run = async function(){
+const run = async function(key){
   // instantiate a collection
   let users = db.collection('users')
 
 
 
-let mikes_work = await users.set('maksim',{
-  firstname : 'maksim',
-  secondname : 'kozyrev'
-})
 
-console.log(mikes_work)
+return await users.get(key)
+
+
   
 }
-app.get('/name', (req, res) => {
-  run()
+app.get('/name/:key', (req, res) => {
+ user = run(req.params.key)
+  res.send(user)
 })
 
 
