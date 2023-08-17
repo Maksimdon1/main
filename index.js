@@ -48,7 +48,7 @@ await users.item('mike')
             company: 'cyclic'
         })
 
-let mikes_work = await users.item('mike').fragment('work').get()
+let mikes_work = await users.item('mike').get()
 
 console.log(mikes_work)
   let animals = db.collection('animals')
