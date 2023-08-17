@@ -6,6 +6,12 @@ const morgan = require('morgan');
 const cors = require('cors');
 
 
+
+var sqlite3 = require('sqlite3').verbose()
+var md5 = require('md5')
+
+const DBSOURCE = "shop.sqlite";
+
 // Declare app
 const app = express();
 
@@ -21,8 +27,48 @@ app.use(morgan('dev'));
 app.use(cors());
 const filepath = './users.json'
 // default route for server
+app.use(express.urlencoded({limit: '50mb', extended: true}))
 
 
+
+let db = new sqlite3.Database(DBSOURCE, (err) => {
+  if (err) {
+    // Cannot open database
+    console.error(err.message);
+    throw err;
+  } else {
+  
+
+    db.run(
+      `CREATE TABLE Users (
+            Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            Login text, 
+            Email text, 
+            Password text,             
+            Name text,
+            Surname text,
+            Token text,
+            SysLevel  INTEGER,
+
+            DateLoggedIn DATE,
+            DateCreated DATE
+            
+
+            )`,
+      (err) => {
+        if (err) {
+          // Table already created
+        } else {
+          // Table just created, creating some rows
+        //  var insert =   "INSERT INTO Users (Login, Email, Password, Salt, DateCreated) VALUES (?,?,?,?,?)";
+         
+        }
+      }
+    );
+  }
+});
+
+module.exports = db;
 
 
 
@@ -35,252 +81,154 @@ app.get('/name', (req, res) => {
 })
 
 
-app.get("/api/users", function (req, res) {
-
-  let content = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(content);
-  console.log( users[0].lamp)
-  res.send(users[0].state, users[0].frequency );
-});
-app.get("/joystick", function (req, res) {
-
-  let content = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(content);
-  console.log( users[0].x)
-  let data = users[0]
-  res.send(data);
-});
-app.put("/joystick", jsonParser, function (req, res) {
-
-
-  if (!req.body) res.status(400).send("Failed to change");
-
-  let userId = 1
-  let x = req.body.x;
-  let y = req.body.y;
 
 
 
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let user;
+app.post("/api/register", async (req, res) => {
+  var errors = [];
+  var data = [];
+  try {
+    const { Login, Email, Password, Name, Surname,Token, SysLevel} = req.body;
 
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) {
-      user = users[i];
-      break;
+    if (!Login) {
+      errors.push("Login is missing");
     }
-  }
-
-  if (user) {
-    user.x = x;
-    user.y = y;
-
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
-  }
-
-
-});
-
-
-
-app.post("/api/users", jsonParser, function (req, res) {
-
-  if (!req.body) res.sendStatus(400);
-
-  let userName = req.body.name;
-  let userAge = req.body.age;
-  console.log(req.body)
-  let user = {name: userName, age: userAge};
-
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-
-  let id = Math.max(...users.map((user) => user.id));
-
-  if (Number.isFinite(id)) {
-    user.id = id + 1;
-  } else {
-    user.id = 1;
-  }
-
-  users.push(user);
-
-  data = JSON.stringify(users);
-  fs.writeFileSync(filepath, data);
-  res.send(user);
-});
-
-app.delete("/api/users/:id", function (req, res) {
-
-  let id = req.params.id;
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let index = -1;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == id) {
-      index = i;
-      break;
+    if (!Token) {
+      errors.push("Login is missing");
     }
-  }
-
-  if (index > -1) {
-    let user = users.splice(index, 1)[0];
-
-    for (let i = 0; i < users.length; i++) {
-      users[i].id = i + 1;
+    if (!Name) {
+      errors.push("Name is missing");
     }
+    if (!Surname) {
+      errors.push("Surname is missing");
+    }
+    if (!Email) {
+      errors.push("Email is missing");
+    }
+    if (errors.length) {
+      res.status(400).json({ error: errors.join(",") });
+      return;
+    }
+    let userExists = false;
 
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
-  }
-  else {
-    res.status(404).send("User isn't found by ID");
+    var sql = "SELECT * FROM Users WHERE Email = ?";
+    await db.all(sql, Email, (err, result) => {
+      if (err) {
+        res.status(402).json({ error: err.message });
+        return;
+      }
+
+      if (result.length === 0) {
+        
+
+        data = {
+          
+          Login: Login,
+          Email: Email,
+          Password: Password,
+          Token : Token,
+          DateCreated: Date("now"),
+          Name : Name,
+          Surname : Surname,
+          SysLevel : SysLevel
+        };
+
+        var sql =
+          "INSERT INTO Users (Login, Email, Password, Token, DateCreated, Name , Surname, SysLevel) VALUES (?,?,?,?,?,?,?,?)";
+        var params = [
+          data.Login,
+          data.Email,
+          data.Password,
+          data.Token,
+          Date("now"),
+          data.Name,
+          data.Surname,
+          data.SysLevel
+        ];
+        var user = db.run(sql, params, function (err, innerResult) {
+          if (err) {
+            res.status(400).json({ error: err.message });
+            return;
+          }
+          else{
+            console.log(this['lastID']);
+          }
+        });
+      } else {
+        userExists = true;
+        // res.status(404).send("User Already Exist. Please Login");
+      }
+    });
+
+    setTimeout(() => {
+      if (!userExists) {
+        res.status(201).send(data);
+      } else {
+        res.status(201).json("Record already exists. Please login");
+      }
+    }, 500);
+  } catch (err) {
+    console.log(err);
   }
 });
 
-app.put("/api/users", jsonParser, function (req, res) {
 
-
-  if (!req.body) res.status(400).send("Failed to change");
-
-  let userId = req.body.id;
-  let userState = req.body.state;
-
-
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let user;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) {
-      user = users[i];
-      break;
+app.post("/api/login", async (req, res) => {
+  try {
+    const { Login, Password } = req.body;
+    // Make sure there is an Email and Password in the request
+    if (!(Login && Password)) {
+      res.status(400).send("All input is required");
     }
-  }
 
-  if (user) {
-    user.state = userState;
+    let user = [];
 
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
-  }
-  else {
-    res.status(404).send(user);
-  }
-
-});
-app.put("/api/frequency", jsonParser, function (req, res) {
-
-
-  if (!req.body) res.status(400).send("Failed to change");
-
-  let userId = req.body.id;
-  let userState = req.body.frequency;
-
-
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let user;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) {
-      user = users[i];
-      break;
+    let params = [
+      Login,
+      Password
+    ]
+    var date = new Date();
+    const loginTime = {
+      day : date.getDay(),
+      hour : date.getHours(),
+      minute : date.getMinutes(),
+      month : date.getMonth(),
+      year : date.getFullYear(),
+      second :date.getSeconds()
     }
-  }
+       var data = [ JSON.stringify( loginTime) , Login,Password];
 
-  if (user) {
-    user.frequency = userState;
+        let sql = `UPDATE Users SET 
+                 
+        DateLoggedIn = ?
+                  WHERE Login = ? AND Password = ?`;
+        db.run(sql, data, function (err) {
+          if (err) {
+            return console.error(err.message);
+          }
+          console.log(`Row(s) updated: ${this}`);
+          
+      
+     
+        });
+    
+    var sqls = "SELECT * FROM Users WHERE Login = ? AND Password = ?";
+    db.all(sqls, params, function (err, rows) {
+      if (err) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
+      else{
+     
+         res.status(200).send(rows);
+      }
 
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
+     
+    });
+  } catch (err) {
+    console.log(err);
   }
-  else {
-    res.status(404).send(user);
-  }
-
 });
-app.put("/temp", jsonParser, function (req, res) {
-
-
-  if (!req.body) res.status(400).send("Failed to change");
-
-  let userId = req.body.id;
-  let userValue = req.body.value;
-
-
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let user;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) {
-      user = users[i];
-      break;
-    }
-  }
-
-  if (user) {
-    user.value = userValue;
-
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
-  }
-  else {
-    res.status(404).send(user);
-  }
-
-});
-
-app.put("/smoke", jsonParser, function (req, res) {
-
-
-  if (!req.body) res.status(400).send("Failed to change");
-
-  let userId = req.body.id;
-  let userValue = req.body.value;
-
-
-  let data = fs.readFileSync(filepath, "utf8");
-  let users = JSON.parse(data);
-  let user;
-
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].id == userId) {
-      user = users[i];
-      break;
-    }
-  }
-
-  if (user) {
-    user.value = userValue;
-
-    let data = JSON.stringify(users);
-    fs.writeFileSync(filepath, data);
-    res.send(user);
-  }
-  else {
-    res.status(404).send(user);
-  }
-
-});
-
-
-
-
-
-
-
-
-
 
 
 
@@ -314,7 +262,6 @@ app.put("/user/light", function(req, res) {
     }
 
 });
-
 
 app.get("/server/light", function(req, res) {
   console.log(req.socket.remoteAddress)
@@ -352,12 +299,6 @@ app.put("/server/light", function(req, res) {
 
 });
 
-
-
-
-
-
-
 app.get("/user/temp", function(req, res) {
     res.send('123')
 
@@ -370,7 +311,6 @@ app.put("/user/temp", function(req, res) {
     }
 
 });
-
 
 app.get("/server/temp", function(req, res) {
     res.send('123')
