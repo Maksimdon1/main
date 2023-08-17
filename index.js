@@ -43,13 +43,14 @@ const run = async function(){
   // instantiate a collection
   let users = db.collection('users')
 
-users.item('mike')
+await users.item('mike')
         .fragment('work').set({
             company: 'cyclic'
         })
 
-let mikes_work =  users.item('mike').fragment('work').get()
-    console.log(mikes_work)
+let mikes_work = await users.item('mike').fragment('work').get()
+
+console.log(mikes_work)
   let animals = db.collection('animals')
   
   // create an item in collection with key "leo"
