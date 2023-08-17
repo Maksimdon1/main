@@ -4,7 +4,8 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const morgan = require('morgan');
 const cors = require('cors');
-
+const CyclicDb = require("@cyclic.sh/dynamodb")
+const db = CyclicDb("kind-red-sea-urchin-fezCyclicDB")
 
 
 var sqlite3 = require('sqlite3').verbose()
@@ -74,10 +75,23 @@ module.exports = db;
 
 
 app.get('/name', (req, res) => {
-    console.log("Just got a request!")
+   // console.log("Just got a request!")
 
-    console.log(req.headers['x-forwarded-for'] )
-    res.send('ip =   '+ req.headers['x-forwarded-for'])
+   // console.log(req.headers['x-forwarded-for'] )
+   // res.send('ip =   '+ req.headers['x-forwarded-for'])
+
+
+const animals = db.collection("animals")
+// create an item in collection with key "leo"
+let leo = animals.set("leo", {
+    type: "cat",
+    color: "orange"
+    })
+    
+    // get an item at key "leo" from collection animals
+    let item = animals.get("leo")
+    console.log(item)
+console.log(leo)
 })
 
 
