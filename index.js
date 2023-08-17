@@ -39,21 +39,7 @@ app.use(express.urlencoded({limit: '50mb', extended: true}))
 
 
 
-const run =  function(key){
-  // instantiate a collection
-  let users = db.collection('users')
 
-
-
-
-  const user =  users.get(key)
-  console.log(key)
-  console.log(user)
-  return user
-
-
-  
-}
 app.get('/name/:key', (req, res) => {
   let users = db.collection('users')
 
