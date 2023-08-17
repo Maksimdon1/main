@@ -78,7 +78,7 @@ module.exports = db;
 
 const run = async function(){
   // instantiate a collection
-  let animals = db.collection('animals')
+  let animals = dbs.collection('animals')
   
   // create an item in collection with key "leo"
   let leo = await animals.set('leo', {
