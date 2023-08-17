@@ -49,7 +49,7 @@ const run = async function(key){
   const user = await users.get(key)
   console.log(key)
   console.log(user)
-  return user
+  return await users.get(key)
 
 
   
