@@ -46,7 +46,7 @@ const run = async function(key){
 
 
 
-return await users.get(key)
+return  users.item(key).fragment('work').get()
 
 
   
