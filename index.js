@@ -45,7 +45,7 @@ const run = async function(){
 
 
 
-let mikes_work = await users.set([{firstname : 'maksim'}],{
+let mikes_work = await users.set('maksim',{
   firstname : 'maksim',
   secondname : 'kozyrev'
 })
