@@ -84,8 +84,7 @@ app.get('/name', (req, res) => {
       
       // get an item at key "leo" from collection animals
       let item = animals.get("leo")
-      console.log(item.then(value => console.log(value)))
-  console.log(leo.then(value => console.log(value)))
+     
    item =  animals.get('leo')
   console.log(item)
 })
