@@ -46,8 +46,9 @@ const run = async function(key){
 
 
 
-  let item = await users.get(key)
-  console.log(item)
+  let user = await users.get(key)
+  console.log(user)
+  return user
 
 
   
