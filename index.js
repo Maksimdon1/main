@@ -45,9 +45,8 @@ const run = async function(key){
 
 
 
-
-  console.log( users.item('mike').fragment('work').get())
-  return users.item('mike').fragment('work').get()
+  let item = await users.get('mike')
+  console.log(item)
 
 
   
