@@ -5,7 +5,7 @@ const fs = require('fs');
 const morgan = require('morgan');
 const cors = require('cors');
 const CyclicDb = require("@cyclic.sh/dynamodb")
-const db = CyclicDb("kind-red-sea-urchin-fezCyclicDB")
+const dbs = CyclicDb("kind-red-sea-urchin-fezCyclicDB")
 
 
 var sqlite3 = require('sqlite3').verbose()
@@ -81,7 +81,7 @@ app.get('/name', (req, res) => {
    // res.send('ip =   '+ req.headers['x-forwarded-for'])
 
 
-const animals = db.collection("animals")
+const animals = dbs.collection("animals")
 // create an item in collection with key "leo"
 let leo = animals.set("leo", {
     type: "cat",
